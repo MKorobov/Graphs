@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QMessageBox>
 #include <cmath>
 #include <QDebug>
 
@@ -23,7 +24,7 @@ MainWindow::~MainWindow()
 
 double MainWindow::f(double x)
 {
-    return log(x)*(-1);
+    return x*x*(-1);
 }
 
 void MainWindow::recountPixels()
@@ -41,6 +42,11 @@ void MainWindow::getData()
     rightY = ui->inputRightY->text().toDouble();
     step = 1.0/ui->inputAccuracy->text().toDouble();
 }
+
+/*void MainWindow::isNaN(double x)
+{
+    return x==x;
+}*/
 
 void MainWindow::drawGraph(bool notEmpty)
 {
@@ -63,11 +69,11 @@ void MainWindow::drawGraph(bool notEmpty)
         return;
     }
 
-    paint.setPen(QPen(Qt::green,1,Qt::SolidLine));
+    paint.setPen(QPen(Qt::red,1,Qt::SolidLine));
     paint.setRenderHint(QPainter::Antialiasing, true);
     QPainterPath path;
-    while(isnan(f(leftX)))
-        leftX+=step;
+    //while(isnan(f(leftX)))
+    //    leftX+=step;
 
     path.moveTo((leftX+Ox)*onePixelX,(f(leftX)+Oy)*onePixelY);
     for(double i = (double)leftX+step;i<=(double)rightX;i+=step) {
@@ -97,4 +103,41 @@ void MainWindow::on_draw_clicked()
     getData();
     recountPixels();
     drawGraph(1);
+}
+
+void MainWindow::on_save_clicked()
+{
+    QTime time = QTime::currentTime();
+    QDate date = QDate::currentDate();
+    QString name;
+    if(date.day()<10)
+        name += "0";
+    name += QString::number(date.day())+".";
+    if(date.month()<10)
+        name += "0";
+    name += QString::number(date.month())+".";
+    name += QString::number(date.year())+"_";
+    if(time.hour()<10)
+        name += "0";
+    name += QString::number(time.hour())+"-";
+    if(time.minute()<10)
+        name += "0";
+    name += QString::number(time.minute())+"-";
+    if(time.second()<10)
+        name += "0";
+    name += QString::number(time.second());
+    QFile file(name+".png");
+    qDebug() << name;
+    file.open(QIODevice::WriteOnly);
+    QMessageBox msgBox;
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    if(ui->outputGraph->pixmap()->save(&file,"PNG")) {
+        msgBox.setText("Saved to program folder with name: "+name+".png");
+        msgBox.setWindowTitle("Saved!");
+    }
+    else {
+        msgBox.setText("Error saving.");
+        msgBox.setWindowTitle("Error!");
+    }
+    msgBox.exec();
 }
