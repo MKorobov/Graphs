@@ -43,10 +43,6 @@ void MainWindow::getData()
     step = 1.0/ui->inputAccuracy->text().toDouble();
 }
 
-/*void MainWindow::isNaN(double x)
-{
-    return x==x;
-}*/
 
 void MainWindow::drawGraph(bool notEmpty)
 {
@@ -72,11 +68,13 @@ void MainWindow::drawGraph(bool notEmpty)
     paint.setPen(QPen(Qt::red,1,Qt::SolidLine));
     paint.setRenderHint(QPainter::Antialiasing, true);
     QPainterPath path;
-    //while(isnan(f(leftX)))
-    //    leftX+=step;
+    while(isnan(f(leftX)))
+        leftX+=step;
 
     path.moveTo((leftX+Ox)*onePixelX,(f(leftX)+Oy)*onePixelY);
     for(double i = (double)leftX+step;i<=(double)rightX;i+=step) {
+        if(isnan(f(i)))
+            continue;
         //paint.drawPoint((i+Ox)*onePixelX,(f(i)+Oy)*onePixelY);
         path.lineTo((i+Ox)*onePixelX,(f(i)+Oy)*onePixelY);
         //qDebug() << i;
