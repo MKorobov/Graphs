@@ -1,6 +1,5 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QMessageBox>
 #include <cmath>
 #include <QDebug>
 
@@ -14,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent) :
     step = 0.1;
     leftX = -100; rightX = 100;
     leftY = -100; rightY = 100;
+    ui->main->setStyleSheet("QCheckBox { color: blue }");
     drawGraph();
 }
 
@@ -24,7 +24,22 @@ MainWindow::~MainWindow()
 
 double MainWindow::f(double x)
 {
-    return x*x*(-1);
+    return log(x)*(-1);
+}
+
+double MainWindow::f1(double x)
+{
+    return sin(x)*(-1);
+}
+
+double MainWindow::f2(double x)
+{
+    return cos(x)*(-1);
+}
+
+double MainWindow::f3(double x)
+{
+    return sin(1.0/x)*(-1);
 }
 
 void MainWindow::recountPixels()
@@ -42,7 +57,6 @@ void MainWindow::getData()
     rightY = ui->inputRightY->text().toDouble();
     step = 1.0/ui->inputAccuracy->text().toDouble();
 }
-
 
 void MainWindow::drawGraph(bool notEmpty)
 {
@@ -65,21 +79,61 @@ void MainWindow::drawGraph(bool notEmpty)
         return;
     }
 
-    paint.setPen(QPen(Qt::red,1,Qt::SolidLine));
+    paint.setPen(QPen(Qt::green,1,Qt::SolidLine));
     paint.setRenderHint(QPainter::Antialiasing, true);
-    QPainterPath path;
-    while(isnan(f(leftX)))
-        leftX+=step;
+    QPainterPath path,p[3];
+    bool first[4] = {1,1,1,1};
 
-    path.moveTo((leftX+Ox)*onePixelX,(f(leftX)+Oy)*onePixelY);
     for(double i = (double)leftX+step;i<=(double)rightX;i+=step) {
-        if(isnan(f(i)))
-            continue;
-        //paint.drawPoint((i+Ox)*onePixelX,(f(i)+Oy)*onePixelY);
-        path.lineTo((i+Ox)*onePixelX,(f(i)+Oy)*onePixelY);
-        //qDebug() << i;
+        if(!isnan(f(i))) {
+            if(first[0]) {
+                path.moveTo((i+Ox)*onePixelX,(f(i)+Oy)*onePixelY);
+                first[0] = false;
+            }
+            else
+                path.lineTo((i+Ox)*onePixelX,(f(i)+Oy)*onePixelY);
+        }
+        if(!isnan(f1(i))) {
+            if(first[1]) {
+                p[0].moveTo((i+Ox)*onePixelX,(f1(i)+Oy)*onePixelY);
+                first[1] = false;
+            }
+            else
+                p[0].lineTo((i+Ox)*onePixelX,(f1(i)+Oy)*onePixelY);
+        }
+        if(!isnan(f2(i))) {
+            if(first[2]) {
+                p[1].moveTo((i+Ox)*onePixelX,(f2(i)+Oy)*onePixelY);
+                first[2] = false;
+            }
+            else
+                p[1].lineTo((i+Ox)*onePixelX,(f2(i)+Oy)*onePixelY);
+        }
+        if(!isnan(f3(i))) {
+            if(first[3]) {
+                p[2].moveTo((i+Ox)*onePixelX,(f3(i)+Oy)*onePixelY);
+                first[3] = false;
+            }
+            else
+                p[2].lineTo((i+Ox)*onePixelX,(f3(i)+Oy)*onePixelY);
+        }
     }
-    paint.drawPath(path);
+    if(ui->main->isChecked()) {
+        paint.setPen(QPen(Qt::blue,1,Qt::SolidLine));
+        paint.drawPath(path);
+    }
+    if(ui->sin->isChecked()) {
+        paint.setPen(QPen(Qt::green,1,Qt::SolidLine));
+        paint.drawPath(p[0]);
+    }
+    if(ui->cos->isChecked()) {
+        paint.setPen(QPen(Qt::red,1,Qt::SolidLine));
+        paint.drawPath(p[1]);
+    }
+    if(ui->tg->isChecked()) {
+        paint.setPen(QPen(Qt::darkMagenta,1,Qt::SolidLine));
+        paint.drawPath(p[2]);
+    }
     paint.end();
     ui->outputGraph->setPixmap(graph);
     return;
@@ -101,41 +155,4 @@ void MainWindow::on_draw_clicked()
     getData();
     recountPixels();
     drawGraph(1);
-}
-
-void MainWindow::on_save_clicked()
-{
-    QTime time = QTime::currentTime();
-    QDate date = QDate::currentDate();
-    QString name;
-    if(date.day()<10)
-        name += "0";
-    name += QString::number(date.day())+".";
-    if(date.month()<10)
-        name += "0";
-    name += QString::number(date.month())+".";
-    name += QString::number(date.year())+"_";
-    if(time.hour()<10)
-        name += "0";
-    name += QString::number(time.hour())+"-";
-    if(time.minute()<10)
-        name += "0";
-    name += QString::number(time.minute())+"-";
-    if(time.second()<10)
-        name += "0";
-    name += QString::number(time.second());
-    QFile file(name+".png");
-    qDebug() << name;
-    file.open(QIODevice::WriteOnly);
-    QMessageBox msgBox;
-    msgBox.setStandardButtons(QMessageBox::Ok);
-    if(ui->outputGraph->pixmap()->save(&file,"PNG")) {
-        msgBox.setText("Saved to program folder with name: "+name+".png");
-        msgBox.setWindowTitle("Saved!");
-    }
-    else {
-        msgBox.setText("Error saving.");
-        msgBox.setWindowTitle("Error!");
-    }
-    msgBox.exec();
 }
