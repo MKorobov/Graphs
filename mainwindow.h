@@ -19,7 +19,10 @@ public:
     void recountPixels();
     void getData();
     double f(double x);
-    bool isNaN(double x);
+    double f1(double x);
+    double f2(double x);
+    double f3(double x);
+    //bool isNaN
     
 private slots:
     void on_exit_clicked();
@@ -27,8 +30,6 @@ private slots:
     void on_clear_clicked();
 
     void on_draw_clicked();
-
-    void on_save_clicked();
 
 private:
     Ui::MainWindow *ui;
