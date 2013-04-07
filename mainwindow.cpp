@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include <cmath>
 #include <QDebug>
+using namespace std;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -13,7 +14,6 @@ MainWindow::MainWindow(QWidget *parent) :
     step = 0.1;
     leftX = -100; rightX = 100;
     leftY = -100; rightY = 100;
-    ui->main->setStyleSheet("QCheckBox { color: blue }");
     drawGraph();
 }
 
@@ -155,4 +155,41 @@ void MainWindow::on_draw_clicked()
     getData();
     recountPixels();
     drawGraph(1);
+}
+
+void MainWindow::on_save_clicked()
+{
+    QTime time = QTime::currentTime();
+    QDate date = QDate::currentDate();
+    QString name;
+   if(date.day()<10)
+        name += "0";
+    name += QString::number(date.day())+".";
+    if(date.month()<10)
+        name += "0";
+    name += QString::number(date.month())+".";
+    name += QString::number(date.year())+"_";
+    if(time.hour()<10)
+        name += "0";
+    name += QString::number(time.hour())+"-";
+    if(time.minute()<10)
+        name += "0";
+    name += QString::number(time.minute())+"-";
+    if(time.second()<10)
+        name += "0";
+    name += QString::number(time.second());
+    QFile file(name+".png");
+    qDebug() << name;
+    file.open(QIODevice::WriteOnly);
+    QMessageBox msgBox;
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    if(ui->outputGraph->pixmap()->save(&file,"PNG")) {
+        msgBox.setText("Saved to program folder with name: "+name+".png");
+        msgBox.setWindowTitle("Saved!");
+    }
+    else {
+        msgBox.setText("Error saving.");
+        msgBox.setWindowTitle("Error!");
+    }
+    msgBox.exec();
 }
